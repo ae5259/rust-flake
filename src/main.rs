@@ -1,6 +1,5 @@
-use std::path::Path;
-
 use regex::Regex;
+use std::path::Path;
 
 fn main() {
     let battery_path = get_battery_path();

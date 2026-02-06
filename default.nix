@@ -1,6 +1,6 @@
 { pkgs, ... }:
 pkgs.rustPlatform.buildRustPackage {
-  pname = "experiments";
+  pname = "sae";
   version = "0.1";
 
   src = pkgs.lib.cleanSource ./.;
