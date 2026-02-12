@@ -17,7 +17,7 @@ fn get_battery_path() -> Vec<fs::DirEntry> {
 
     global_path
         .read_dir()
-        .unwrap()
+        .expect("Cannot find /sys/class/power_supply/ folder.")
         .filter_map(|el| el.ok())
         .filter(|el| re.is_match(el.path().to_str().unwrap()))
         .collect()
