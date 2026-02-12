@@ -3,66 +3,57 @@ use std::fs;
 use std::path::Path;
 
 fn main() {
-    let battery_path = get_battery_path();
+    let _ = get_battery_path();
+    let p = read_file("capacity", String::from("No battery"));
+    let s = read_file("status", String::new());
 
-    println!("{}", battery_path);
+    println!("{:?}", p);
+    println!("{:?}", s);
 }
 
-fn get_battery_path_attempt() -> String {
-    let global_path = Path::new("./data/");
+fn get_battery_path() -> Vec<fs::DirEntry> {
+    let global_path = Path::new("/sys/class/power_supply/");
     let re = Regex::new(r"BAT[0-9]+").expect("Wrong RegEx");
 
-    let mut batteries: Vec<&str> = Vec::new();
-
-    global_path.read_dir().map(|el| {
-        // if re.is_match(haystack)
-    });
-
-    for entry in global_path
+    global_path
         .read_dir()
-        .expect("Couldn't read /sys/class/power_supply/")
-    {
-        let entry = entry.expect("Couldn't read the entry");
-        let _match = re.is_match(entry.path().to_str().unwrap());
-
-        if _match {
-            // batteries.push(entry.path().to_str().unwrap());
-        }
-
-        println!("Does {} match RegEx? {}", entry.path().display(), _match)
-    }
-
-    String::new()
+        .unwrap()
+        .filter_map(|el| el.ok())
+        .filter(|el| re.is_match(el.path().to_str().unwrap()))
+        .collect()
 }
 
-fn get_battery_path() -> String {
-    let global_path = Path::new("./data/");
-    let re = Regex::new(r"BAT[0-9]+").expect("Wrong RegEx");
+fn read_file(file_name: &str, no_entry: String) -> Vec<String> {
+    let batteries = get_battery_path();
 
-    let mut batteries: Vec<&str> = Vec::new();
-
-    for entry in global_path
-        .read_dir()
-        .expect("Couldn't read /sys/class/power_supply/")
-    {
-        let entry = entry.expect("Couldn't read the entry");
-        let _match = re.is_match(entry.path().to_str().unwrap());
-
-        if _match {
-            // batteries.push(entry.path().to_str().unwrap());
-        }
-
-        println!("Does {} match RegEx? {}", entry.path().display(), _match)
-    }
-
-    String::new()
+    batteries
+        .iter()
+        .map(|el| {
+            fs::read_to_string(format!("{}/{}", el.path().display(), file_name))
+                .unwrap_or(no_entry.clone())
+        })
+        .collect()
 }
-
-fn get_battery_percentage() -> String {
-    fs::read_to_string("/sys/class/power_supply/BAT0/capacity")
-        .unwrap_or(String::from("No battery"))
-}
-
-fn get_battery_status() -> String {
-    fs::read_to_string("/sys/class/power_supply/BAT0/status").unwrap_or(String::from(""))
-}
+// fn get_battery_percentages() -> Vec<String> {
+//     let batteries = get_battery_path();
+//
+//     batteries
+//         .iter()
+//         .map(|el| {
+//             fs::read_to_string(format!("{}/capacity", el.path().display()))
+//                 .unwrap_or(String::from("No battery"))
+//         })
+//         .collect()
+// }
+//
+// fn get_battery_status() -> Vec<String> {
+//     let batteries = get_battery_path();
+//
+//     batteries
+//         .iter()
+//         .map(|el| {
+//             fs::read_to_string(format!("{}/status", el.path().display()))
+//                 .unwrap_or(String::from(""))
+//         })
+//         .collect()
+// }
