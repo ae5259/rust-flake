@@ -13,14 +13,14 @@ fn main() {
     }
 
     println!(
-        "Battery: {}, Status: {}",
+        "Battery: {}Status: {}",
         p.first().unwrap(),
         s.first().unwrap()
     );
 }
 
 fn get_battery_path() -> Vec<fs::DirEntry> {
-    let global_path = Path::new("/sys/class/power_suppsdhasdly/");
+    let global_path = Path::new("/sys/class/power_supply/");
     let re = Regex::new(r"BAT[0-9]+").expect("Wrong RegEx");
 
     let entries = match global_path.read_dir() {
