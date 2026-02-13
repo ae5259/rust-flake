@@ -45,6 +45,7 @@ fn read_file(file_name: &str, no_entry: String) -> Vec<String> {
         })
         .collect()
 }
+
 // fn get_battery_percentages() -> Vec<String> {
 //     let batteries = get_battery_path();
 //

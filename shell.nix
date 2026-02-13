@@ -1,13 +1,7 @@
 { self, pkgs, ... }:
 pkgs.mkShell {
   packages = with pkgs; [
-    rustc
-    cargo
-    alejandra
-    nixd
-    deadnix
-    statix
-
+    # Rust
     rustc
     cargo
     rustfmt
@@ -15,6 +9,11 @@ pkgs.mkShell {
     rust-analyzer
     cargo-watch
 
+    # Nix
+    alejandra
+    nixd
+    deadnix
+    statix
     self.formatter.${system}
   ];
 }
