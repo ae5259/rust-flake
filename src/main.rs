@@ -3,21 +3,32 @@ use std::fs;
 use std::path::Path;
 
 fn main() {
-    let _ = get_battery_path();
+    let a = get_battery_path();
     let p = read_file("capacity", String::from("No battery"));
     let s = read_file("status", String::new());
 
-    println!("{:?}", p);
-    println!("{:?}", s);
+    if a.is_empty() {
+        println!("No battery.");
+        return;
+    }
+
+    println!(
+        "Battery: {}, Status: {}",
+        p.first().unwrap(),
+        s.first().unwrap()
+    );
 }
 
 fn get_battery_path() -> Vec<fs::DirEntry> {
-    let global_path = Path::new("/sys/class/power_supply/");
+    let global_path = Path::new("/sys/class/power_suppsdhasdly/");
     let re = Regex::new(r"BAT[0-9]+").expect("Wrong RegEx");
 
-    global_path
-        .read_dir()
-        .expect("Cannot find /sys/class/power_supply/ folder.")
+    let entries = match global_path.read_dir() {
+        Ok(els) => els,
+        Err(_) => return Vec::new(),
+    };
+
+    entries
         .filter_map(|el| el.ok())
         .filter(|el| re.is_match(el.path().to_str().unwrap()))
         .collect()
