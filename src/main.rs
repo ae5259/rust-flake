@@ -7,6 +7,8 @@ fn main() {
     let p = read_file("capacity", String::from("No battery"));
     let s = read_file("status", String::new());
 
+    let all = get_battery_percentages_float(p.clone());
+    println!("{:?}", all);
     if a.is_empty() {
         println!("No battery.");
         return;
@@ -46,26 +48,6 @@ fn read_file(file_name: &str, no_entry: String) -> Vec<String> {
         .collect()
 }
 
-// fn get_battery_percentages() -> Vec<String> {
-//     let batteries = get_battery_path();
-//
-//     batteries
-//         .iter()
-//         .map(|el| {
-//             fs::read_to_string(format!("{}/capacity", el.path().display()))
-//                 .unwrap_or(String::from("No battery"))
-//         })
-//         .collect()
-// }
-//
-// fn get_battery_status() -> Vec<String> {
-//     let batteries = get_battery_path();
-//
-//     batteries
-//         .iter()
-//         .map(|el| {
-//             fs::read_to_string(format!("{}/status", el.path().display()))
-//                 .unwrap_or(String::from(""))
-//         })
-//         .collect()
-// }
+fn get_battery_percentages_float(els: Vec<String>) -> Vec<u8> {
+    els.iter().map(|el| el.parse::<u8>().unwrap()).collect()
+}
