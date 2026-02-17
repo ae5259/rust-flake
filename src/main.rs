@@ -13,7 +13,7 @@ fn main() {
         println!("No battery.");
         return;
     }
-
+    println!("{:?}", p);
     println!(
         "Battery: {}Status: {}",
         p.first().unwrap(),
@@ -49,5 +49,7 @@ fn read_file(file_name: &str, no_entry: String) -> Vec<String> {
 }
 
 fn get_battery_percentages_float(els: Vec<String>) -> Vec<u8> {
-    els.iter().map(|el| el.parse::<u8>().unwrap()).collect()
+    els.iter()
+        .map(|el| el.trim().parse::<u8>().unwrap())
+        .collect()
 }
