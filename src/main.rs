@@ -1,55 +1,63 @@
-use regex::Regex;
-use std::fs;
+use input::LibinputInterface;
+use input::event::EventTrait;
+use libc::{O_ACCMODE, O_RDONLY, O_RDWR, O_WRONLY};
+use std::fs::OpenOptions;
+use std::os::unix::{fs::OpenOptionsExt, io::OwnedFd};
 use std::path::Path;
 
-fn main() {
-    let a = get_battery_path();
-    let p = read_file("capacity", String::from("No battery"));
-    let s = read_file("status", String::new());
+pub struct Interface;
 
-    let all = get_battery_percentages_float(p.clone());
-    println!("{:?}", all);
-    if a.is_empty() {
-        println!("No battery.");
-        return;
+impl LibinputInterface for Interface {
+    fn open_restricted(&mut self, path: &Path, flags: i32) -> Result<OwnedFd, i32> {
+        OpenOptions::new()
+            .custom_flags(flags)
+            .read((flags & O_ACCMODE == O_RDONLY) | (flags & O_ACCMODE == O_RDWR))
+            .write((flags & O_ACCMODE == O_WRONLY) | (flags & O_ACCMODE == O_RDWR))
+            .open(path)
+            .map(|file| file.into())
+            .map_err(|err| err.raw_os_error().unwrap())
     }
-    println!("{:?}", p);
-    println!(
-        "Battery: {}Status: {}",
-        p.first().unwrap(),
-        s.first().unwrap()
-    );
+
+    fn close_restricted(&mut self, fd: OwnedFd) {
+        drop(fd);
+    }
 }
 
-fn get_battery_path() -> Vec<fs::DirEntry> {
-    let global_path = Path::new("/sys/class/power_supply/");
-    let re = Regex::new(r"BAT[0-9]+").expect("Wrong RegEx");
+fn main() {
+    let mut input = input::Libinput::new_with_udev(Interface);
+    input.udev_assign_seat("seat0").unwrap();
+    input.dispatch().unwrap();
 
-    let entries = match global_path.read_dir() {
-        Ok(els) => els,
-        Err(_) => return Vec::new(),
-    };
+    let events: Vec<String> = input
+        .clone()
+        .collect::<Vec<input::Event>>()
+        .into_iter()
+        .map(|event| event.device())
+        .filter(|device| device.has_capability(input::DeviceCapability::Pointer))
+        .map(|device| device.name().to_string())
+        .collect();
 
-    entries
-        .filter_map(|el| el.ok())
-        .filter(|el| re.is_match(el.path().to_str().unwrap()))
-        .collect()
+    let trackpoints: Vec<String> = events 
+        .clone()
+        .into_iter()
+        .filter(|name| name.contains("TrackPoint"))
+        // .filter(|name| name.contains("TrackPoint") )
+        .collect();
+
+    println!("Events: {:#?}", events);
+    // println!("Input: {:#?}", input);
+
+    println!("Events: {:#?}", trackpoints);
 }
 
-fn read_file(file_name: &str, no_entry: String) -> Vec<String> {
-    let batteries = get_battery_path();
-
-    batteries
-        .iter()
-        .map(|el| {
-            fs::read_to_string(format!("{}/{}", el.path().display(), file_name))
-                .unwrap_or(no_entry.clone())
-        })
-        .collect()
-}
-
-fn get_battery_percentages_float(els: Vec<String>) -> Vec<u8> {
-    els.iter()
-        .map(|el| el.trim().parse::<u8>().unwrap())
-        .collect()
-}
+// fn main2() {
+//     let mut input = Libinput::new_with_udev(Interface);
+//     input.udev_assign_seat("seat0").unwrap();
+//     loop {
+//         input.dispatch().unwrap();
+//         for event in &mut input {
+//             println!("Got event: {:?}", event);
+//             println!("Device: {:?}", event.device().name());
+//         }
+//     }
+// }

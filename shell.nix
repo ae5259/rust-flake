@@ -8,6 +8,8 @@ pkgs.mkShell {
     clippy
     rust-analyzer
     cargo-watch
+    pkgconf
+    libinput
 
     # Nix
     alejandra
@@ -15,5 +17,14 @@ pkgs.mkShell {
     deadnix
     statix
     self.formatter.${system}
+  ];
+
+  nativeBuildInputs = with pkgs; [
+    pkg-config
+    libinput
+  ];
+
+  buildInputs = with pkgs; [
+    libinput
   ];
 }
