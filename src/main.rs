@@ -1,5 +1,5 @@
-use input::LibinputInterface;
-use input::event::EventTrait;
+use input::{Device, Event};
+use input::{LibinputInterface, event::EventTrait};
 use libc::{O_ACCMODE, O_RDONLY, O_RDWR, O_WRONLY};
 use std::fs::OpenOptions;
 use std::os::unix::{fs::OpenOptionsExt, io::OwnedFd};
@@ -28,26 +28,43 @@ fn main() {
     input.udev_assign_seat("seat0").unwrap();
     input.dispatch().unwrap();
 
-    let events: Vec<String> = input
+    let events: Vec<Device> = input
         .clone()
         .collect::<Vec<input::Event>>()
         .into_iter()
         .map(|event| event.device())
         .filter(|device| device.has_capability(input::DeviceCapability::Pointer))
+        .collect();
+
+    let devices: Vec<String> = events
+        .clone()
+        .into_iter()
         .map(|device| device.name().to_string())
         .collect();
 
-    let trackpoints: Vec<String> = events 
+    let touchpad: Vec<String> = events
         .clone()
         .into_iter()
+        .filter(|device| device.has_capability(input::DeviceCapability::Gesture))
+        .map(|device| device.name().to_string())
+        .collect();
+
+    let trackpoints: Vec<String> = events
+        .clone()
+        .into_iter()
+        .filter(|device| device.has_capability(input::DeviceCapability::Pointer))
+        .map(|device| device.name().to_string())
         .filter(|name| name.contains("TrackPoint"))
         // .filter(|name| name.contains("TrackPoint") )
         .collect();
 
     println!("Events: {:#?}", events);
+    println!("Devices: {:#?}", devices);
+    println!("Touchpad: {:#?}", touchpad);
+    println!("Trackpoint: {:#?}", trackpoints);
     // println!("Input: {:#?}", input);
 
-    println!("Events: {:#?}", trackpoints);
+    // println!("Events: {:#?}", trackpoints);
 }
 
 // fn main2() {
